@@ -1,390 +1,128 @@
-#include <SDL2/SDL.h>
-#include <vector>
-#include <ctime>
-#include <cstdlib>
-#include <string>
+#include <array>
+#include <chrono>
+#include <cmath>
+#include <SFML/Graphics.hpp>
 
-const int SCREEN_WIDTH = 800;
-const int SCREEN_HEIGHT = 600;
-const int TILE_SIZE = 40;
-const int FROG_SIZE = 35;
-const int LANES = 11;
+#include "Headers/Car.hpp"
+#include "Headers/Frog.hpp"
+#include "Headers/CarsManager.hpp"
+#include "Headers/DrawMap.hpp"
+#include "Headers/DrawText.hpp"
+#include "Headers/Global.hpp"
+#include "Headers/Log.hpp"
+#include "Headers/Turtle.hpp"
+#include "Headers/RiverManager.hpp"
 
-enum LaneType { SAFE, ROAD, WATER, WIN };
+int main()
+{
+    bool next_level = 0;
 
-struct Vehicle {
-    float x, y;
-    int width, height;
-    float speed;
-    SDL_Color color;
-};
+    unsigned short timer = TIMER_INITIAL_DURATION;
+    unsigned short timer_duration = TIMER_INITIAL_DURATION;
 
-struct Log {
-    float x, y;
-    int width, height;
-    float speed;
-};
+    std::array<bool, 5 > swamp ={0};
+    std::chrono::microseconds lag(0);
+    std::chrono::steady_clock::time_point previous_time;
+    
+    sf::Event event;
+    sf::RenderWindow window(sf::VideoMode(CELL_SIZE * SCREEN_RESIZE, SCREEN_RESIZE * (FONT_HEIGHT * CELL_SIZE * MAP_HEIGHT)), "Frogger", sf::Style::Close);
+    window.setView(sf::View(sf::FloatRect(0, 0, CELL_SIZE * MAP_WIDTH, FONT_HEIGHT + CELL_SIZE * MAP_HEIGHT)));
 
-class Frogger {
-private:
-    SDL_Window* window;
-    SDL_Renderer* renderer;
-    bool running;
-    int frogX, frogY;
-    int lives;
-    int score;
-    int level;
-    bool onLog;
-    float logSpeed;
-    
-    std::vector<LaneType> lanes;
-    std::vector<std::vector<Vehicle>> vehicles;
-    std::vector<std::vector<Log>> logs;
-    
-    Uint32 lastMoveTime;
-    const Uint32 MOVE_DELAY = 150;
+    CarsManager cars_manager(level);
 
-public:
-    Frogger() : window(nullptr), renderer(nullptr), running(true), 
-                lives(3), score(0), level(1), onLog(false), logSpeed(0),
-                lastMoveTime(0) {
-        frogX = SCREEN_WIDTH / 2 - FROG_SIZE / 2;
-        frogY = SCREEN_HEIGHT - TILE_SIZE - 5;
-        
-        initLanes();
-        initVehicles();
-        initLogs();
-    }
-    
-    ~Frogger() {
-        if (renderer) SDL_DestroyRenderer(renderer);
-        if (window) SDL_DestroyWindow(window);
-        SDL_Quit();
-    }
-    
-    bool init() {
-        if (SDL_Init(SDL_INIT_VIDEO) < 0) return false;
-        
-        window = SDL_CreateWindow("FROGGER - Proyecto Final", 
-                                  SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                                  SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
-        if (!window) return false;
-        
-        renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-        if (!renderer) return false;
-        
-        srand(static_cast<unsigned>(time(0)));
-        return true;
-    }
-    
-    void initLanes() {
-        lanes = {
-            WIN,   // 0 - Goal
-            SAFE,  // 1
-            WATER, // 2
-            WATER, // 3
-            WATER, // 4
-            SAFE,  // 5 - Middle safe zone
-            ROAD,  // 6
-            ROAD,  // 7
-            ROAD,  // 8
-            SAFE,  // 9
-            SAFE   // 10 - Start
-        };
-    }
-    
-    void initVehicles() {
-        vehicles.clear();
-        vehicles.resize(LANES);
-        
-        // Lane 6 - Cars (right)
-        for (int i = 0; i < 3; i++) {
-            vehicles[6].push_back({i * 250.0f, 6 * TILE_SIZE + 5.0f, 60, 30, 
-                                  2.0f * level, {255, 0, 0, 255}});
-        }
-        
-        // Lane 7 - Trucks (left)
-        for (int i = 0; i < 2; i++) {
-            vehicles[7].push_back({i * 350.0f, 7 * TILE_SIZE + 5.0f, 90, 30, 
-                                  -1.5f * level, {0, 100, 255, 255}});
-        }
-        
-        // Lane 8 - Fast cars (right)
-        for (int i = 0; i < 4; i++) {
-            vehicles[8].push_back({i * 200.0f, 8 * TILE_SIZE + 5.0f, 50, 30, 
-                                  3.0f * level, {255, 255, 0, 255}});
-        }
-    }
-    
-    void initLogs() {
-        logs.clear();
-        logs.resize(LANES);
-        
-        // Lane 2 - Short logs (right)
-        for (int i = 0; i < 3; i++) {
-            logs[2].push_back({i * 280.0f, 2 * TILE_SIZE + 10.0f, 100, 25, 
-                              1.2f * level});
-        }
-        
-        // Lane 3 - Medium logs (left)
-        for (int i = 0; i < 2; i++) {
-            logs[3].push_back({i * 400.0f, 3 * TILE_SIZE + 10.0f, 150, 25, 
-                              -1.0f * level});
-        }
-        
-        // Lane 4 - Long logs (right)
-        for (int i = 0; i < 2; i++) {
-            logs[4].push_back({i * 450.0f, 4 * TILE_SIZE + 10.0f, 180, 25, 
-                              0.8f * level});
-        }
-    }
-    
-    void handleInput() {
-        SDL_Event e;
-        while (SDL_PollEvent(&e)) {
-            if (e.type == SDL_QUIT) {
-                running = false;
+    Frog frog;
+
+    RiverManager river_manager(level);
+
+    previous_time = std::chrono::steady_clock::now();
+
+    while (1 == window.isOpen())
+    {
+        std::chrono::microseconds delta_time = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - previous_time);
+        lag += delta_time;
+        previous_time += delta_time;
+
+        while (FRAME_DURATION <= lag)
+        {
+            lag -= FRAME_DURATION;
+
+            while (1 == window.pollEvent(event))
+            {
+                switch (event.type)
+                {
+                    case sf::Event::Closed:
+                    {
+                        window.close();
+                    }
+                }
             }
-            
-            if (e.type == SDL_KEYDOWN) {
-                Uint32 currentTime = SDL_GetTicks();
-                if (currentTime - lastMoveTime < MOVE_DELAY) continue;
-                lastMoveTime = currentTime;
-                
-                switch (e.key.keysym.sym) {
-                    case SDLK_UP:
-                    case SDLK_w:
-                        if (frogY > 0) {
-                            frogY -= TILE_SIZE;
-                            score += 10;
-                        }
+
+            if (1 == next_level)
+            {
+                if (1 == sf::Keyboard::isKeyPressed(sf::Keyboard::Enter))
+                {
+                    next_level = 0;
+                }
+            }
+            else
+            {
+                if (0 == get_dead())
+                {
+                    if (0 == timer)
+                    {
+                        frog.set_dead();
+                    }
+                    else
+                    {
+                        timer--;
+                    }
+                }
+
+                frog.update();
+                cars_manager.update(frog);
+                river_manager.update(frog);
+            }
+
+            if (1 == frog.get_dead())
+            {
+                if (1 == sf::Keyboard::isKeyboard::isKeyPressed(sf::Keyboard::Enter))
+                {
+                    level = 0;
+
+                    timer =TIMER_INITIAL_DURATION;
+                    timer_duration = TIMER_INITIAL_DURATION;
+                    swamp.fill(0);
+                    cars_manager.generate_level(level);
+                    river_manager.generate_level(level);
+                    frog.reset();
+                }
+            }
+            else if (1 == frog.update_swamp(swamp))
+            {
+                bool swamp_full = 1;
+
+                for (unsigned char a = 0; a < swamp. size(); a++)
+                {
+                    if (0 == swamp[a])
+                    {
+                        swamp_full = 0;
                         break;
-                    case SDLK_DOWN:
-                    case SDLK_s:
-                        if (frogY < SCREEN_HEIGHT - TILE_SIZE) frogY += TILE_SIZE;
-                        break;
-                    case SDLK_LEFT:
-                    case SDLK_a:
-                        if (frogX > 0) frogX -= TILE_SIZE;
-                        break;
-                    case SDLK_RIGHT:
-                    case SDLK_d:
-                        if (frogX < SCREEN_WIDTH - TILE_SIZE) frogX += TILE_SIZE;
-                        break;
-                    case SDLK_r:
-                        resetFrog();
-                        break;
+                    }
                 }
-            }
-        }
-    }
-    
-    void update() {
-        // Update vehicles
-        for (int lane = 0; lane < LANES; lane++) {
-            for (auto& v : vehicles[lane]) {
-                v.x += v.speed;
-                
-                if (v.speed > 0 && v.x > SCREEN_WIDTH) {
-                    v.x = -v.width;
-                } else if (v.speed < 0 && v.x < -v.width) {
-                    v.x = SCREEN_WIDTH;
-                }
-            }
-        }
-        
-        // Update logs
-        for (int lane = 0; lane < LANES; lane++) {
-            for (auto& log : logs[lane]) {
-                log.x += log.speed;
-                
-                if (log.speed > 0 && log.x > SCREEN_WIDTH) {
-                    log.x = -log.width;
-                } else if (log.speed < 0 && log.x < -log.width) {
-                    log.x = SCREEN_WIDTH;
-                }
-            }
-        }
-        
-        checkCollisions();
-        checkWin();
-    }
-    
-    void checkCollisions() {
-        int currentLane = frogY / TILE_SIZE;
-        
-        // Check road collisions
-        if (lanes[currentLane] == ROAD) {
-            for (const auto& v : vehicles[currentLane]) {
-                if (frogX + FROG_SIZE > v.x && frogX < v.x + v.width &&
-                    frogY + FROG_SIZE > v.y && frogY < v.y + v.height) {
-                    die();
-                    return;
-                }
-            }
-        }
-        
-        // Check water
-        if (lanes[currentLane] == WATER) {
-            onLog = false;
-            for (const auto& log : logs[currentLane]) {
-                if (frogX + FROG_SIZE > log.x && frogX < log.x + log.width &&
-                    frogY + FROG_SIZE > log.y && frogY < log.y + log.height) {
-                    onLog = true;
-                    logSpeed = log.speed;
-                    break;
-                }
-            }
-            
-            if (onLog) {
-                frogX += static_cast<int>(logSpeed);
-                if (frogX < 0 || frogX > SCREEN_WIDTH - FROG_SIZE) {
-                    die();
-                }
-            } else {
-                die();
-            }
-        }
-    }
-    
-    void checkWin() {
-        int currentLane = frogY / TILE_SIZE;
-        if (lanes[currentLane] == WIN) {
-            score += 100 * level;
-            level++;
-            initVehicles();
-            initLogs();
-            resetFrog();
-        }
-    }
-    
-    void die() {
-        lives--;
-        if (lives <= 0) {
-            // Game Over
-            lives = 3;
-            score = 0;
-            level = 1;
-            initVehicles();
-            initLogs();
-        }
-        resetFrog();
-    }
-    
-    void resetFrog() {
-        frogX = SCREEN_WIDTH / 2 - FROG_SIZE / 2;
-        frogY = SCREEN_HEIGHT - TILE_SIZE - 5;
-        onLog = false;
-    }
-    
-    void render() {
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-        SDL_RenderClear(renderer);
-        
-        // Draw lanes
-        for (int i = 0; i < LANES; i++) {
-            SDL_Rect lane = {0, i * TILE_SIZE, SCREEN_WIDTH, TILE_SIZE};
-            
-            switch (lanes[i]) {
-                case WIN:
-                    SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
-                    break;
-                case SAFE:
-                    SDL_SetRenderDrawColor(renderer, 100, 200, 100, 255);
-                    break;
-                case ROAD:
-                    SDL_SetRenderDrawColor(renderer, 50, 50, 50, 255);
-                    break;
-                case WATER:
-                    SDL_SetRenderDrawColor(renderer, 0, 100, 200, 255);
-                    break;
-            }
-            SDL_RenderFillRect(renderer, &lane);
-            
-            // Draw lane lines for roads
-            if (lanes[i] == ROAD) {
-                SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-                for (int x = 0; x < SCREEN_WIDTH; x += 40) {
-                    SDL_Rect line = {x, i * TILE_SIZE + TILE_SIZE / 2 - 2, 20, 4};
-                    SDL_RenderFillRect(renderer, &line);
-                }
-            }
-        }
-        
-        // Draw vehicles
-        for (const auto& laneVehicles : vehicles) {
-            for (const auto& v : laneVehicles) {
-                SDL_Rect rect = {static_cast<int>(v.x), static_cast<int>(v.y), 
-                                v.width, v.height};
-                SDL_SetRenderDrawColor(renderer, v.color.r, v.color.g, v.color.b, 255);
-                SDL_RenderFillRect(renderer, &rect);
-            }
-        }
-        
-        // Draw logs
-        for (const auto& laneLogs : logs) {
-            for (const auto& log : laneLogs) {
-                SDL_Rect rect = {static_cast<int>(log.x), static_cast<int>(log.y), 
-                                log.width, log.height};
-                SDL_SetRenderDrawColor(renderer, 139, 69, 19, 255);
-                SDL_RenderFillRect(renderer, &rect);
-            }
-        }
-        
-        // Draw frog
-        SDL_Rect frog = {frogX, frogY, FROG_SIZE, FROG_SIZE};
-        SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
-        SDL_RenderFillRect(renderer, &frog);
-        
-        // Draw eyes
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-        SDL_Rect eye1 = {frogX + 8, frogY + 8, 8, 8};
-        SDL_Rect eye2 = {frogX + FROG_SIZE - 16, frogY + 8, 8, 8};
-        SDL_RenderFillRect(renderer, &eye1);
-        SDL_RenderFillRect(renderer, &eye2);
-        
-        // Draw HUD
-        drawHUD();
-        
-        SDL_RenderPresent(renderer);
-    }
-    
-    void drawHUD() {
-        // Lives
-        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-        for (int i = 0; i < lives; i++) {
-            SDL_Rect heart = {10 + i * 30, 10, 20, 20};
-            SDL_RenderFillRect(renderer, &heart);
-        }
-        
-        // Score and Level indicator (simple bars)
-        SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
-        SDL_Rect scoreBar = {SCREEN_WIDTH - 150, 10, score % 200, 10};
-        SDL_RenderFillRect(renderer, &scoreBar);
-        
-        SDL_SetRenderDrawColor(renderer, 0, 255, 255, 255);
-        SDL_Rect levelBar = {SCREEN_WIDTH - 150, 25, level * 20, 10};
-        SDL_RenderFillRect(renderer, &levelBar);
-    }
-    
-    void run() {
-        while (running) {
-            handleInput();
-            update();
-            render();
-            SDL_Delay(16); // ~60 FPS
-        }
-    }
-};
 
-int main(int argc, char* argv[]) {
-    Frogger game;
-    
-    if (!game.init()) {
-        SDL_Log("Failed to initialize: %s", SDL_GetError());
-        return 1;
+                if (1 == swamp_full)
+                {
+                    next_level = 1;
+                    level++;
+                    timer_duration = std::max<unsigned short>(floor(0.25f *TIMER_INITIAL_DURATION), timer_duration - TIMER_REDUCTION);
+                    timer = timer_duration;
+
+                    if (TOTAL_LEVELS ==level)
+                    {
+                        level =static_cast<unsigned char>(floor);
+                    }
+                }
+            }
+        }
     }
-    
-    game.run();
-    return 0;
 }
