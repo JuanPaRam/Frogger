@@ -121,7 +121,44 @@ int main()
                     {
                         level =static_cast<unsigned char>(floor);
                     }
+                    swamp.fill(0);
+                    cars_manager.generate_level(level);
+                    river_manager.generate_level(level);
                 }
+                else
+                {
+                    timer = std::min<unsingned short>(timer_duration, timer + floor(0.5f * timer_duration));
+                }
+                 frog.reset();
+            }
+            if (FRAME_DURATION > lag)
+            {
+                window.clear();
+
+                if (1 == next_level)
+                {
+                    draw_text(1, 0, 0, "NEXT LEVEL!", window);
+                }
+                else
+                {
+                    draw_map(swamp, window);
+
+                    if (0 == frog.get_dead())
+                    {
+                        river_manager.draw(window);
+                        frog.draw(window);
+                    }
+                    else
+                    {
+                        frog.draw(window);
+                        river_manager.draw(window);
+                    }
+
+                    cars_manager.draw(window);
+                    draw_text(0, 0, CELL_SIZE * MAP_HEIGHT, "Time: " + std::to_string(static_cast<unsigned short>(floor(timer / 64.f))), window);
+                }
+
+                window.display();
             }
         }
     }
