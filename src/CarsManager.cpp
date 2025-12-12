@@ -2,30 +2,31 @@
 #include <chrono>
 #include <SFML/Graphics.hpp>
 
-#include "Headers/Car.hpp"
-#include "Headers/Frog.hpp"
-#include "Headers/CarsManager.hpp"
-#include "Headers/Global.hpp"
+#include "include/Car.hpp"
+#include "include/Frog.hpp"
+#include "include/CarsManager.hpp"
+#include "include/Global.hpp"
 
-CarsManager::CarsManager(unsigned char i_level)
+CarsManager::CarsManager(unsigned char i_level) // Constructor de la clase CarsManager
 {
-    generate_level(i_level);
+    // Inicializa el gestor de coches y genera el nivel especificado
+    generate_level(i_level); // Número del nivel a generar (0-7)
 }
 
-void CarsManager::draw(sf::RenderWindow& i_window)
+void CarsManager::draw(sf::RenderWindow& i_window) // Dibuja todos los coches en la ventana
 {
-    for (Car& car : cars)
+    for (Car& car : cars) // Itera sobre el vector de coches y llama al método draw de cada uno
     {
-        car.draw(i_window);
+        car.draw(i_window); // Ventana de SFML donde se dibujarán los coches
     }
 }
 
-void CarsManager::generate::level(unsigned char i_level)
+void CarsManager::generate_level(unsigned char i_level) // Genera la configuración de coches para un nivel específico
 {
-    cars.clear();
-    switch (i_level)
+    cars.clear(); // Limpia los coches existentes y crea nuevos según el nivel seleccionado
+    switch (i_level) // Cada nivel tiene un patrón único de posición y cantidad de coches
     {
-        case 0:
+        case 0: // Número del nivel a generar (0-7, cada uno con diferente dificultad)
         {
             cars.push_back(Car(1, 0));
             cars.push_back(Car(9, 0));
@@ -274,17 +275,19 @@ void CarsManager::generate::level(unsigned char i_level)
     }
 }
 
-void CarsManager::update(Frog& i_frog)
+void CarsManager::update(Frog& i_frog) // Actualiza el estado de todos los coches y verifica colisiones con la rana
 {
+     // Primero actualiza la posición de cada coche, luego detecta si algún coche colisiona con la rana
     for (Car& car : cars)
     {
         car.update();
     }
 
-    if (0== i_frog.get_dead())
+    if (0== i_frog.get_dead()) // solo si la rana está viva
     {
         for (Car& car : cars)
         {
+             // Referencia a la rana para detectar colisiones y actualizar su estado
             if (1 == car.get_rect().intersects(i_frog.get_rect()))
             {
                 i_frog.set_dead();

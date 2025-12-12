@@ -1,14 +1,18 @@
 # Makefile para Frogger con MSYS2 MINGW64
 
 CXX = g++
-CXXFLAGS = -std=c++17 -Wall -Wextra -O2
-LDFLAGS = -lmingw32 -lSDL2main -lSDL2
+CXXFLAGS = -std=c++17 -Wall -Wextra -O2 -Iinclude
+LDFLAGS = -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio
+
+# Directorios
+SRC_DIR = src
+BIN_DIR = bin
 
 # Nombre del ejecutable
-TARGET = frogger.exe
+TARGET = $(BIN_DIR)/frogger.exe
 
 # Archivos fuente
-SOURCES = main.cpp
+SOURCES = $(wildcard $(SRC_DIR)/*.cpp)
 
 # Archivos objeto
 OBJECTS = $(SOURCES:.cpp=.o)
@@ -24,7 +28,7 @@ $(TARGET): $(OBJECTS)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
-	rm -f $(OBJECTS) $(TARGET)
+	rm -f $(SRC_DIR)/*.o $(TARGET)
 	@echo "Archivos limpiados"
 
 run: $(TARGET)

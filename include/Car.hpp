@@ -1,25 +1,27 @@
-#pragma once 
+#pragma once  // Evita inclusiones múltiples del archivo
 
-class Car
+class Car // Maneja el movimiento, renderizado y colisiones de los vehículos
 {
-    bool direction;
+    bool direction; // Dirección del movimiento: 0 = derecha, 1 = izquierda
 
-    short x;
+    short x; // Posición horizontal en píxeles (puede ser negativa)
 
-    unsigned char size;
-    unsigned char speed;    
-    unsigned char type;
+    unsigned char size; // Tamaño del coche en píxeles (ancho)
+    unsigned char speed; // Velocidad de movimiento del coche    
+    unsigned char type; // Tipo de coche (determina qué sprite usar)
 
-    unsigned short y;
+    unsigned short y; // Posición vertical en píxeles
 
-    sf::Sprite sprite;
+    sf::Sprite sprite; // Sprite de SFML para dibujar el coche
 
-    sf::Texture texture;
+    sf::Texture texture; // Textura que contiene la imagen del coche
 public:
-    Car(unsigned char i_x, unsigned short i_y, unsigned char i_size, unsigned char i_speed, unsigned char i_y);
+    // Constructor de Car
+    Car(unsigned char i_x, unsigned short i_y);
 
-    void draw(sf::RenderWindow i_window);
-    void update();
+    void draw(sf::RenderWindow& i_window); // Dibuja el coche en la ventana de renderizado
 
-    sf::IntRect get_rect() const;
+    void update(); // Actualiza la posición del coche
+
+    sf::IntRect get_rect() const; // Obtiene el rectángulo delimitador del coche
 };

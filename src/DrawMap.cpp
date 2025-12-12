@@ -3,19 +3,20 @@
 #include <cmath>
 #include <SFML/Graphics.hpp>
 
-#include "Headers/DrawMAp.hpp"
-#include "Headers/Global.hpp"
+#include "include/DrawMap.hpp"
+#include "include/Global.hpp"
 
-void draw_map(const std::array<bool, 5>& i_swamp, sf::RenderWindow& i_window)
+ // Dibuja el mapa completo del juego Frogger
+void draw_map(const std::array<bool, 5>& i_swamp, sf::RenderWindow& i_window) // Renderiza las diferentes secciones del mapa (carretera, río, zonas seguras)
 {
     sf::Sprite sprite;
     sf::Texture texture;
-    texture.loadFromFile("Resources/Images/Map.png");
+    texture.loadFromFile("Resources/Images/Map.png"); // usando texturas del archivo Map.png.
     sprite.setTexture(texture);
 
-    for (unsigned char a = 0; a < MAP_HEIGHT; a++)
+    for (unsigned char a = 0; a < MAP_HEIGHT; a++) // También dibuja los pantanos donde la rana puede llegar como objetivos.
     {
-        if (a == floor(0.5f * MAP_HEIGHT) || a == MAP_height - 1)
+        if (a == floor(0.5f * MAP_HEIGHT) || a == MAP_HEIGHT - 1)
         {
             sprite.setTextureRect(sf::IntRect(4 * CELL_SIZE, 0, CELL_SIZE, CELL_SIZE));
         }
@@ -70,12 +71,12 @@ void draw_map(const std::array<bool, 5>& i_swamp, sf::RenderWindow& i_window)
     }
     sprite.setTextureRect(sf::IntRect(9 * CELL_SIZE, 0, CELL_SIZE, CELL_SIZE));
 
-    for (unsigned char a = 0; a < i_swamp.size(); a++)
+    for (unsigned char a = 0; a < i_swamp.size(); a++) // Array de booleanos que indica qué posiciones de pantano están ocupadas
     {
         if (1 == i_swamp[a])
         {
             sprite.setPosition(3 * CELL_SIZE * (0.5f + a ), CELL_SIZE);
-            i_window.draw(sprite);
+            i_window.draw(sprite); // Ventana de SFML donde se dibujará el mapa
         }
     }
 }

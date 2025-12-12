@@ -3,17 +3,17 @@
 #include <cmath>
 #include <SFML/Graphics.hpp>
 
-#include "Headers/Car.hpp"
-#include "Headers/Frog.hpp"
-#include "Headers/CarsManager.hpp"
-#include "Headers/DrawMap.hpp"
-#include "Headers/DrawText.hpp"
-#include "Headers/Global.hpp"
-#include "Headers/Log.hpp"
-#include "Headers/Turtle.hpp"
-#include "Headers/RiverManager.hpp"
+#include "include/Car.hpp"
+#include "include/Frog.hpp"
+#include "include/CarsManager.hpp"
+#include "include/DrawMap.hpp"
+#include "include/DrawText.hpp"
+#include "include/Global.hpp"
+#include "include/Log.hpp"
+#include "include/Turtle.hpp"
+#include "include/RiverManager.hpp"
 
-int main()
+int main() // Función principal del juego
 {
     bool next_level = 0;
 
@@ -36,43 +36,43 @@ int main()
 
     previous_time = std::chrono::steady_clock::now();
 
-    while (1 == window.isOpen())
+    while (1 == window.isOpen()) // Acciona el bucle principal mientras la ventana esté abierta
     {
         std::chrono::microseconds delta_time = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - previous_time);
         lag += delta_time;
         previous_time += delta_time;
 
-        while (FRAME_DURATION <= lag)
+        while (FRAME_DURATION <= lag) // Procesa la lógica del juego en intervalos fijos
         {
             lag -= FRAME_DURATION;
 
-            while (1 == window.pollEvent(event))
+            while (1 == window.pollEvent(event)) // Procesa todos los eventos de la ventana
             {
-                switch (event.type)
+                switch (event.type) // Maneja diferentes tipos de eventos
                 {
-                    case sf::Event::Closed:
+                    case sf::Event::Closed: // Que hacer en caso de que el usuario cierra la ventana
                     {
                         window.close();
                     }
                 }
             }
 
-            if (1 == next_level)
+            if (1 == next_level) // Que hacer si se completó un nivel
             {
-                if (1 == sf::Keyboard::isKeyPressed(sf::Keyboard::Enter))
+                if (1 == sf::Keyboard::isKeyPressed(sf::Keyboard::Enter)) // Espera Enter para continuar
                 {
                     next_level = 0;
                 }
             }
-            else
+            else // Lógica de juego activa o no en siguiente nivel
             {
-                if (0 == get_dead())
+                if (0 == frog.get_dead()) // Continuar si la rana está viva
                 {
-                    if (0 == timer)
+                    if (0 == timer) // Si se acabó el tiempo
                     {
                         frog.set_dead();
                     }
-                    else
+                    else // Si aún hay tiempo
                     {
                         timer--;
                     }
@@ -83,9 +83,9 @@ int main()
                 river_manager.update(frog);
             }
 
-            if (1 == frog.get_dead())
+            if (1 == frog.get_dead()) // Si la rana murió
             {
-                if (1 == sf::Keyboard::isKeyboard::isKeyPressed(sf::Keyboard::Enter))
+                if (1 == sf::Keyboard::isKeyPressed(sf::Keyboard::Enter)) // Presiona Enter para reiniciar
                 {
                     level = 0;
 
@@ -97,27 +97,27 @@ int main()
                     frog.reset();
                 }
             }
-            else if (1 == frog.update_swamp(swamp))
+            else if (1 == frog.update_swamp(swamp)) // Si la rana alcanzó un pantano
             {
                 bool swamp_full = 1;
 
-                for (unsigned char a = 0; a < swamp. size(); a++)
+                for (unsigned char a = 0; a < swamp. size(); a++) // Verifica si todos los pantanos están llenos
                 {
-                    if (0 == swamp[a])
+                    if (0 == swamp[a]) // Si encuentra un pantano vacío
                     {
                         swamp_full = 0;
                         break;
                     }
                 }
 
-                if (1 == swamp_full)
+                if (1 == swamp_full) // Si todos los pantanos están llenos
                 {
                     next_level = 1;
                     level++;
                     timer_duration = std::max<unsigned short>(floor(0.25f *TIMER_INITIAL_DURATION), timer_duration - TIMER_REDUCTION);
                     timer = timer_duration;
 
-                    if (TOTAL_LEVELS ==level)
+                    if (TOTAL_LEVELS == level) // Si alcanzó el último nivel
                     {
                         level =static_cast<unsigned char>(floor);
                     }
@@ -125,30 +125,30 @@ int main()
                     cars_manager.generate_level(level);
                     river_manager.generate_level(level);
                 }
-                else
+                else // Si aún faltan pantanos por llenar
                 {
                     timer = std::min<unsingned short>(timer_duration, timer + floor(0.5f * timer_duration));
                 }
                  frog.reset();
             }
-            if (FRAME_DURATION > lag)
+            if (FRAME_DURATION > lag) // Si es momento de renderizar
             {
                 window.clear();
 
-                if (1 == next_level)
+                if (1 == next_level) // Muestra pantalla de siguiente nivel
                 {
                     draw_text(1, 0, 0, "NEXT LEVEL!", window);
                 }
-                else
+                else // Renderizado normal del juego
                 {
                     draw_map(swamp, window);
 
-                    if (0 == frog.get_dead())
+                    if (0 == frog.get_dead()) // Si la rana está viva, dibuja río primero
                     {
                         river_manager.draw(window);
                         frog.draw(window);
                     }
-                    else
+                    else // Si la rana está muerta, dibuja rana primero
                     {
                         frog.draw(window);
                         river_manager.draw(window);
