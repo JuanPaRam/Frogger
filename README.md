@@ -3,7 +3,7 @@ Llevar a la rana al otro lado del mapa en cada uno de sus respectivas casillas. 
 
 🎮 Controles
 Lista los controles:
-:arrow_left: :arrow_up: :arrow_down: :arrow_right: ->: Movimiento
+⬅️⬇️⬆️➡️ : Movimiento
 
 ⚙️ Mecánicas
 La rana puede moverse hacia adelante y hacia atras, de izquierda a derecha.
