@@ -1,7 +1,5 @@
 #pragma once // Evita inclusiones múltiples del archivo
 
-#include <array> // Necesario para std::array
-
 // Clase Frog
 class Frog // Representa la rana jugable en el juego Frogger
 {

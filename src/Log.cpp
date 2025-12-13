@@ -64,7 +64,7 @@ bool Log::check_frog(const Frog& i_frog) const
 
 void Log::draw(sf::RenderWindow& i_window)
 {
-    texture.loadFromFile("assets/Logs.png"); // Carga la textura del tronco desde el archivo
+    texture.loadFromFile("assets/Log.png"); // Carga la textura del tronco desde el archivo
     sprite.setPosition(x, y); // Dibuja el sprite del tronco
     sprite.setTexture(texture);
     sprite.setTextureRect(sf::IntRect(6 * CELL_SIZE * current_frame, CELL_SIZE * type, size, CELL_SIZE));
