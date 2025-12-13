@@ -16,7 +16,8 @@
 
 int main() // Función principal del juego
 {
-    bool intro_playing = 1;
+    bool instructions_showing = 1;
+    bool intro_playing = 0;
     bool title_showing = 0;
     bool next_level = 0;
     bool game_over = 0;
@@ -24,9 +25,11 @@ int main() // Función principal del juego
     unsigned char lives = 3;
     unsigned char intro_frame = 1;
     unsigned char intro_animation_timer = 0;
+    unsigned short instructions_timer = 180;
     unsigned short title_timer = 0;
     constexpr unsigned char INTRO_TOTAL_FRAMES = 76;
     constexpr unsigned char INTRO_FRAME_SPEED = 2;
+    constexpr unsigned short INSTRUCTIONS_DURATION = 180;
     constexpr unsigned short TITLE_DURATION = 60;
 
     unsigned short timer = TIMER_INITIAL_DURATION;
@@ -42,6 +45,16 @@ int main() // Función principal del juego
     sf::Texture title_texture;
     sf::Sprite title_sprite;
     title_texture.loadFromFile("assets/Title.png");
+    
+    sf::Texture arrows_texture;
+    sf::Sprite arrows_sprite;
+    arrows_texture.loadFromFile("assets/Arrows.png");
+    arrows_sprite.setTexture(arrows_texture);
+    
+    sf::Texture enter_texture;
+    sf::Sprite enter_sprite;
+    enter_texture.loadFromFile("assets/Enter.png");
+    enter_sprite.setTexture(enter_texture);
     
     sf::SoundBuffer blink_buffer;
     sf::Sound blink_sound;
@@ -120,7 +133,19 @@ int main() // Función principal del juego
                 }
             }
 
-            if (1 == intro_playing) // Animación de introducción
+            if (1 == instructions_showing) // Pantalla de instrucciones
+            {
+                if (instructions_timer > 0)
+                {
+                    instructions_timer--;
+                }
+                else
+                {
+                    instructions_showing = 0;
+                    intro_playing = 1;
+                }
+            }
+            else if (1 == intro_playing) // Animación de introducción
             {
                 if (0 == intro_animation_timer)
                 {
@@ -300,7 +325,25 @@ int main() // Función principal del juego
         // Renderizado - fuera del bucle de actualización
         window.clear();
 
-        if (1 == intro_playing) // Muestra animación de introducción
+        if (1 == instructions_showing) // Muestra pantalla de instrucciones
+        {
+            // Calcular centro de la ventana
+            float centerX = CELL_SIZE * MAP_WIDTH / 2.0f;
+            float centerY = (FONT_HEIGHT + CELL_SIZE * MAP_HEIGHT) / 2.0f;
+            
+            // Dibujar textos centrados (sin las flechas en el texto)
+            draw_text(0, centerX - 70, centerY - 20, "To navigate use", window);
+            draw_text(0, centerX - 70, centerY + 12, "To respawn use", window);
+            
+            // Posicionar Arrows a la derecha del primer texto
+            arrows_sprite.setPosition(centerX + 50, centerY - 20);
+            window.draw(arrows_sprite);
+            
+            // Posicionar Enter a la derecha del segundo texto
+            enter_sprite.setPosition(centerX + 50, centerY + 12);
+            window.draw(enter_sprite);
+        }
+        else if (1 == intro_playing) // Muestra animación de introducción
         {
             intro_texture.loadFromFile("assets/intro/AnimacionPantallaCarga" + std::to_string(intro_frame) + ".png");
             intro_sprite.setTexture(intro_texture, true);
