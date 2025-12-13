@@ -64,18 +64,22 @@ void RiverManager::generate_level(unsigned char i_level)
         }
         case 1:
         {
-         logs.push_back(Log(1, 0, 0));
+            logs.push_back(Log(1, 0, 0));
             logs.push_back(Log(1, 5, 0));
             logs.push_back(Log(1, 10, 0));
 
             turtles.push_back(Turtle(0, 3, 0, 1));
-            turtles.push_back(Turtle(0, 3, 5, 1));
+            turtles.push_back(Turtle(1, 3, 5, 1));
             turtles.push_back(Turtle(0, 3, 10, 1));
             turtles.push_back(Turtle(0, 3, 15, 1));
 
             logs.push_back(Log(2, 0, 2));
             logs.push_back(Log(2, 8, 2));
             logs.push_back(Log(2, 16, 2)); 
+
+            logs.push_back(Log(0, 0, 3));
+            logs.push_back(Log(0, 4, 3));
+            logs.push_back(Log(0, 8, 3));
 
             turtles.push_back(Turtle(0, 4, 0, 4));
             turtles.push_back(Turtle(0, 4, 5, 4));
@@ -223,7 +227,7 @@ void RiverManager::generate_level(unsigned char i_level)
 			turtles.push_back(Turtle(1, 2, 1, 4));
 			turtles.push_back(Turtle(1, 3, 8, 4));
 			turtles.push_back(Turtle(0, 2, 19, 4));
-    }
+        }
     }
 }
 
@@ -244,8 +248,22 @@ void RiverManager::update(Frog& i_frog)
             log.update(0, i_frog);
         }
     }
-    if (0 == frog_on_top && CELL_SIZE < i_frog.get_y() && i_frog.get_y() < CELL_SIZE * floor(0.5f * MAP_HEIGHT))
+
+    for (Turtle& turtle : turtles)
     {
-        i_frog.set_dead();
+        if (0 == frog_on_top && 0 == i_frog.get_dead())
+        {
+            frog_on_top = turtle.check_frog(i_frog);
+            turtle.update(frog_on_top, i_frog);
+        }
+        else
+        {
+            turtle.update(0, i_frog);
+        }
     }
+    
+    if (0 == frog_on_top && CELL_SIZE < i_frog.get_y() && i_frog.get_y() < CELL_SIZE * floor(0.5f * MAP_HEIGHT))
+        {
+            i_frog.set_dead();
+        }
 }

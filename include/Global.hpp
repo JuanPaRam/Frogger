@@ -7,7 +7,7 @@ constexpr unsigned char CELL_SIZE = 16; // Tamaño de cada celda del mapa en pí
 //estipula los frames por segundo
 constexpr unsigned char CROCODILE_ANIMATION_SPEED = 32; // Velocidad de animación del cocodrilo (frames entre cambios)
 constexpr unsigned char FAST_SPEED = 3; // Velocidad rápida de movimiento (3 píxeles por frame)
-constexpr unsigned char FRONT_HEIGHT = 16; // Altura del frente/encabezado en píxeles
+constexpr unsigned char FONT_HEIGHT = 16; // Altura del frente/encabezado en píxeles
 constexpr unsigned char FROG_ANIMATION_SPEED = 8; // Velocidad de animación de la rana (frames entre cambios)
 constexpr unsigned char MAP_WIDTH = 16; // Ancho del mapa en celdas
 constexpr unsigned char MAP_HEIGHT = 15; // Alto del mapa en celdas
