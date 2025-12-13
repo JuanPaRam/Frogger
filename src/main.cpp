@@ -16,7 +16,9 @@
 int main() // Función principal del juego
 {
     bool next_level = 0;
+    bool game_over = 0;
     unsigned char level = 0;
+    unsigned char lives = 3;
 
     unsigned short timer = TIMER_INITIAL_DURATION;
     unsigned short timer_duration = TIMER_INITIAL_DURATION;
@@ -24,6 +26,7 @@ int main() // Función principal del juego
     std::array<bool, 5 > swamp ={0};
     std::chrono::microseconds lag(0);
     std::chrono::steady_clock::time_point previous_time;
+    std::chrono::steady_clock::time_point game_over_time;
     
     sf::Event event;
     sf::RenderWindow window(sf::VideoMode(CELL_SIZE * MAP_WIDTH * SCREEN_RESIZE, SCREEN_RESIZE * (FONT_HEIGHT + CELL_SIZE * MAP_HEIGHT)), "Frogger", sf::Style::Close);
@@ -58,20 +61,42 @@ int main() // Función principal del juego
                 }
             }
 
-            if (1 == next_level) // Que hacer si se completó un nivel
+            if (1 == game_over) // Manejo del Game Over
+            {
+                // Verifica que hayan pasado al menos 3 segundos desde game over
+                auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - game_over_time);
+                if (elapsed.count() >= 3000) // Reinicia automáticamente después de 3 segundos
+                {
+                    game_over = 0;
+                    lives = 3;
+                    level = 0;
+                    timer = TIMER_INITIAL_DURATION;
+                    timer_duration = TIMER_INITIAL_DURATION;
+                    swamp.fill(0);
+                    cars_manager.generate_level(level);
+                    river_manager.generate_level(level);
+                    frog.reset();
+                }
+            }
+            else if (1 == next_level) // Que hacer si se completó un nivel
             {
                 if (1 == sf::Keyboard::isKeyPressed(sf::Keyboard::Enter)) // Espera Enter para continuar
                 {
                     next_level = 0;
                 }
             }
-            else // Lógica de juego activa o no en siguiente nivel
+            else if (0 == game_over && 0 == intro_screen) // Lógica de juego activa solo si no está en game over ni en intro
             {
                 if (0 == frog.get_dead()) // Continuar si la rana está viva
                 {
                     if (0 == timer) // Si se acabó el tiempo
                     {
                         frog.set_dead();
+                        if (0 == lives) // Si no quedan vidas
+                        {
+                            game_over = 1;
+                            game_over_time = std::chrono::steady_clock::now();
+                        }
                     }
                     else // Si aún hay tiempo
                     {
@@ -84,18 +109,26 @@ int main() // Función principal del juego
                 river_manager.update(frog);
             }
 
-            if (1 == frog.get_dead()) // Si la rana murió
+            if (0 == game_over && 1 == frog.get_dead()) // Si la rana murió y no está en game over
             {
-                if (1 == sf::Keyboard::isKeyPressed(sf::Keyboard::Enter)) // Presiona Enter para reiniciar
+                // Si no quedan vidas, activa game over inmediatamente
+                if (0 == lives)
                 {
-                    level = 0;
-
-                    timer =TIMER_INITIAL_DURATION;
-                    timer_duration = TIMER_INITIAL_DURATION;
-                    swamp.fill(0);
-                    cars_manager.generate_level(level);
-                    river_manager.generate_level(level);
+                    game_over = 1;
+                    game_over_time = std::chrono::steady_clock::now();
+                }
+                else if (1 == sf::Keyboard::isKeyPressed(sf::Keyboard::Enter)) // Si hay vidas, espera Enter
+                {
+                    lives--;
+                    timer = timer_duration;
                     frog.reset();
+                    
+                    // Verifica si después de decrementar no quedan vidas
+                    if (0 == lives)
+                    {
+                        game_over = 1;
+                        game_over_time = std::chrono::steady_clock::now();
+                    }
                 }
             }
             else if (1 == frog.update_swamp(swamp)) // Si la rana alcanzó un pantano
@@ -132,35 +165,50 @@ int main() // Función principal del juego
                 }
                  frog.reset();
             }
-            if (FRAME_DURATION > lag) // Si es momento de renderizar
-            {
-                window.clear();
-
-                if (1 == next_level) // Muestra pantalla de siguiente nivel
-                {
-                    draw_text(1, 0, 0, "NEXT LEVEL!", window);
-                }
-                else // Renderizado normal del juego
-                {
-                    draw_map(swamp, window);
-
-                    if (0 == frog.get_dead()) // Si la rana está viva, dibuja río primero
-                    {
-                        river_manager.draw(window);
-                        frog.draw(window);
-                    }
-                    else // Si la rana está muerta, dibuja rana primero
-                    {
-                        frog.draw(window);
-                        river_manager.draw(window);
-                    }
-
-                    cars_manager.draw(window);
-                    draw_text(0, 0, CELL_SIZE * MAP_HEIGHT, "Time: " + std::to_string(static_cast<unsigned short>(floor(timer / 64.f))), window);
-                }
-
-                window.display();
-            }
         }
+        
+        // Renderizado - fuera del bucle de actualización
+        window.clear();
+
+        if (1 == intro_screen) // Muestra pantalla de introducción
+        {
+            draw_text(1, 0, 0, "FROGGER\n\n\nPress Enter\n\nto Start", window);
+        }
+        else if (1 == game_over) // Muestra pantalla de Game Over
+        {
+            // Calcula el tiempo restante
+            auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - game_over_time);
+            float time_remaining = std::max(0.0f, (3000.0f - elapsed.count()) / 1000.0f);
+            
+            std::string counter_text = std::to_string(static_cast<int>(std::ceil(time_remaining)));
+            
+            draw_text(1, 0, 0, "Game Over :(\n\n" + counter_text + "\n\nThe game will restart\n\nin a moment", window);
+        }
+        else if (1 == next_level) // Muestra pantalla de siguiente nivel
+        {
+            draw_text(1, 0.5f * CELL_SIZE * MAP_WIDTH, 0.5f * CELL_SIZE * MAP_HEIGHT, "NEXT LEVEL!", window);
+        }
+        else // Renderizado normal del juego
+        {
+            draw_map(swamp, window);
+
+            if (0 == frog.get_dead()) // Si la rana está viva, dibuja río primero
+            {
+                river_manager.draw(window);
+                frog.draw(window);
+            }
+            else // Si la rana está muerta, dibuja rana primero
+            {
+                frog.draw(window);
+                river_manager.draw(window);
+            }
+
+            cars_manager.draw(window);
+            draw_text(0, 0, CELL_SIZE * MAP_HEIGHT, "Time: " + std::to_string(static_cast<unsigned short>(floor(timer / 64.f))), window);
+            draw_text(0, CELL_SIZE * MAP_WIDTH / 2 - 40, CELL_SIZE * MAP_HEIGHT, "Level: " + std::to_string(level + 1), window);
+            draw_text(0, CELL_SIZE * MAP_WIDTH - 80, CELL_SIZE * MAP_HEIGHT, "Lives: " + std::to_string(lives), window);
+        }
+
+        window.display();
     }
 }

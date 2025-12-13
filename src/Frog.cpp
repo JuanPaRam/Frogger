@@ -55,15 +55,18 @@ void Frog::draw(sf::RenderWindow& i_window)
 	if (0 == dead)
 	{
 		texture.loadFromFile("assets/Frog.png");
+		sprite.setPosition(x, y);
+		sprite.setTexture(texture);
+		sprite.setTextureRect(sf::IntRect(CELL_SIZE * current_frame, CELL_SIZE * direction, CELL_SIZE, CELL_SIZE));
 	}
 	else
 	{
 		texture.loadFromFile("assets/DeathFrogRoad.png");
+		sprite.setPosition(x, y);
+		sprite.setTexture(texture);
+		// Usar direction = 0 para animación de muerte (solo tiene una fila)
+		sprite.setTextureRect(sf::IntRect(CELL_SIZE * current_frame, 0, CELL_SIZE, CELL_SIZE));
 	}
-
-	sprite.setPosition(x, y);
-	sprite.setTexture(texture);
-	sprite.setTextureRect(sf::IntRect(CELL_SIZE * current_frame, CELL_SIZE * direction, CELL_SIZE, CELL_SIZE));
 
 	i_window.draw(sprite);
 }
@@ -162,14 +165,18 @@ void Frog::update()
 	}
 	else if (y < CELL_SIZE * floor(0.5f * MAP_HEIGHT))
 	{
-		if (0 == animation_timer)
+		// Animación de muerte en el agua - se detiene en el frame 3
+		if (current_frame < 3)
 		{
-			animation_timer = FROG_ANIMATION_SPEED;
-			current_frame = std::min(3, 1 + current_frame);
-		}
-		else
-		{
-			animation_timer--;
+			if (0 == animation_timer)
+			{
+				animation_timer = FROG_ANIMATION_SPEED;
+				current_frame = std::min(3, 1 + current_frame);
+			}
+			else
+			{
+				animation_timer--;
+			}
 		}
 	}
 }
