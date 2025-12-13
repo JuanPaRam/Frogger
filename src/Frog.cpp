@@ -58,7 +58,7 @@ void Frog::draw(sf::RenderWindow& i_window)
 	}
 	else
 	{
-		texture.loadFromFile("assets/FrogDeath.png");
+		texture.loadFromFile("assets/DeathFrogRoad.png");
 	}
 
 	sprite.setPosition(x, y);
