@@ -2,10 +2,10 @@
 #include <chrono>
 #include <SFML/Graphics.hpp>
 
-#include "include/Car.hpp"
-#include "include/Frog.hpp"
-#include "include/CarsManager.hpp"
-#include "include/Global.hpp"
+#include "Car.hpp"
+#include "Frog.hpp"
+#include "CarsManager.hpp"
+#include "Global.hpp"
 
 CarsManager::CarsManager(unsigned char i_level) // Constructor de la clase CarsManager
 {

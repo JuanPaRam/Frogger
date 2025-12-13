@@ -3,19 +3,20 @@
 #include <cmath>
 #include <SFML/Graphics.hpp>
 
-#include "include/Car.hpp"
-#include "include/Frog.hpp"
-#include "include/CarsManager.hpp"
-#include "include/DrawMap.hpp"
-#include "include/DrawText.hpp"
-#include "include/Global.hpp"
-#include "include/Log.hpp"
-#include "include/Turtle.hpp"
-#include "include/RiverManager.hpp"
+#include "Car.hpp"
+#include "Frog.hpp"
+#include "CarsManager.hpp"
+#include "DrawMap.hpp"
+#include "DrawText.hpp"
+#include "Global.hpp"
+#include "Log.hpp"
+#include "Turtle.hpp"
+#include "RiverManager.hpp"
 
 int main() // Función principal del juego
 {
     bool next_level = 0;
+    unsigned char level = 0;
 
     unsigned short timer = TIMER_INITIAL_DURATION;
     unsigned short timer_duration = TIMER_INITIAL_DURATION;
@@ -25,8 +26,8 @@ int main() // Función principal del juego
     std::chrono::steady_clock::time_point previous_time;
     
     sf::Event event;
-    sf::RenderWindow window(sf::VideoMode(CELL_SIZE * SCREEN_RESIZE, SCREEN_RESIZE * (FONT_HEIGHT * CELL_SIZE * MAP_HEIGHT)), "Frogger", sf::Style::Close);
-    window.setView(sf::View(sf::FloatRect(0, 0, CELL_SIZE * MAP_WIDTH, FONT_HEIGHT + CELL_SIZE * MAP_HEIGHT)));
+    sf::RenderWindow window(sf::VideoMode(CELL_SIZE * MAP_WIDTH * SCREEN_RESIZE, SCREEN_RESIZE * (FRONT_HEIGHT + CELL_SIZE * MAP_HEIGHT)), "Frogger", sf::Style::Close);
+    window.setView(sf::View(sf::FloatRect(0, 0, CELL_SIZE * MAP_WIDTH, FRONT_HEIGHT + CELL_SIZE * MAP_HEIGHT)));
 
     CarsManager cars_manager(level);
 
@@ -116,10 +117,10 @@ int main() // Función principal del juego
                     level++;
                     timer_duration = std::max<unsigned short>(floor(0.25f *TIMER_INITIAL_DURATION), timer_duration - TIMER_REDUCTION);
                     timer = timer_duration;
-
+// Modificacion del nivel ----------------------------------------------------------------------------------------------------------------------------------------
                     if (TOTAL_LEVELS == level) // Si alcanzó el último nivel
                     {
-                        level =static_cast<unsigned char>(floor);
+                        level = static_cast<unsigned char>(floor(0.5f * TOTAL_LEVELS)); // Regresa a la mitad de los niveles
                     }
                     swamp.fill(0);
                     cars_manager.generate_level(level);
@@ -127,7 +128,7 @@ int main() // Función principal del juego
                 }
                 else // Si aún faltan pantanos por llenar
                 {
-                    timer = std::min<unsingned short>(timer_duration, timer + floor(0.5f * timer_duration));
+                    timer = std::min<unsigned short>(timer_duration, timer + floor(0.5f * timer_duration));
                 }
                  frog.reset();
             }

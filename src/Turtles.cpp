@@ -3,9 +3,9 @@
 #include <cmath> // Librería para funciones matemáticas como floor
 #include <SFML/Graphics.hpp> // Librería SFML para gráficos
 
-#include "include/Frog.hpp" // Incluye la clase Frog
-#include "include/Global.hpp" // Incluye constantes globales del juego
-#include "include/Turtle.hpp" // Incluye la definición de la clase Turtle
+#include "Frog.hpp" // Incluye la clase Frog
+#include "Global.hpp" // Incluye constantes globales del juego
+#include "Turtle.hpp" // Incluye la definición de la clase Turtle
 
 
 // Constructor de la clase Turtle inicializando una tortuga con su posición, tamaño, dirección y comportamiento de inmersión
@@ -59,14 +59,14 @@ bool Turtle::check_frog(const Frog& i_frog) const // Verifica si la rana está s
     {
         /* Verifica si el rectángulo de la rana intersecta con el área de las tortugas
         se ajusta el área con márgenes (0.25 y 0.5 del tamaño de celda) */
-        return i_frog.get_rect().intersects(sf::IntRect(static_cast<short>(x + floor(0.25f * CELL_SIZE)), y, static_cast<short>(CELL_SIZE * size - floor(0.5f CELL_SIZE)), CELL_SIZE));
+        return i_frog.get_rect().intersects(sf::IntRect(static_cast<short>(x + floor(0.25f * CELL_SIZE)), y, static_cast<short>(CELL_SIZE * size - floor(0.5f * CELL_SIZE)), CELL_SIZE));
 
     }
 }
 
 void Turtle::draw(sf::RenderWindow& i_window) // Dibuja el grupo de tortugas en la ventana
 {
-    texture.loadFromFile("Resources/Images/Turtle.png"); // Carga la textura de las tortugas desde el archivo
+    texture.loadFromFile("assets/Turtle.png"); // Carga la textura de las tortugas desde el archivo
 
     sprite.setTexture(texture); // Asigna la textura al sprite
 

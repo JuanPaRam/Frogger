@@ -3,15 +3,15 @@
 #include <cmath>
 #include <SFML/Graphics.hpp>
 
-#include "include/DrawMap.hpp"
-#include "include/Global.hpp"
+#include "DrawMap.hpp"
+#include "Global.hpp"
 
  // Dibuja el mapa completo del juego Frogger
 void draw_map(const std::array<bool, 5>& i_swamp, sf::RenderWindow& i_window) // Renderiza las diferentes secciones del mapa (carretera, río, zonas seguras)
 {
     sf::Sprite sprite;
     sf::Texture texture;
-    texture.loadFromFile("Resources/Images/Map.png"); // usando texturas del archivo Map.png.
+    texture.loadFromFile("assets/Map.png"); // usando texturas del archivo Map.png.
     sprite.setTexture(texture);
 
     for (unsigned char a = 0; a < MAP_HEIGHT; a++) // También dibuja los pantanos donde la rana puede llegar como objetivos.
@@ -28,7 +28,7 @@ void draw_map(const std::array<bool, 5>& i_swamp, sf::RenderWindow& i_window) //
         {
             sprite.setTextureRect(sf::IntRect(6 * CELL_SIZE, 0, CELL_SIZE, CELL_SIZE));
         }
-        else if (a == 3 + floor(0.5f * MAP_HEIGHT)
+        else if (a == 3 + floor(0.5f * MAP_HEIGHT))
         {
             sprite.setTextureRect(sf::IntRect(7 * CELL_SIZE, 0, CELL_SIZE, CELL_SIZE));
         }

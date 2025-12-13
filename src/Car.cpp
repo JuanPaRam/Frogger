@@ -2,11 +2,11 @@
 #include <cmath>
 #include <SFML/Graphics.hpp>
 
-#include "include/Car.hpp"
-#include "include/Global.hpp"
+#include "Car.hpp"
+#include "Global.hpp"
 
 //Constructor de la clase Car por si se genera el carrito afuera del mapa
-Car::Car(unsigned char i_x, unsigned char i_y) : direction(i_y % 2), x(CELL_SIZE * i_x), size(CELL_SIZE * (1 + (2 > i_y))), type(i_y), y(static_cast<unsigned short>(CELL_SIZE * floor(1 + i_y + 0.5f * MAP_HEIGHT)))
+Car::Car(unsigned char i_x, unsigned short i_y) : direction(i_y % 2), x(CELL_SIZE * i_x), size(CELL_SIZE * (1 + (2 > i_y))), type(i_y), y(static_cast<unsigned short>(CELL_SIZE * floor(1 + i_y + 0.5f * MAP_HEIGHT)))
 {
     //Inicializa un coche con su posición, dirección, tamaño y velocidad
     if (0 == direction)
@@ -41,7 +41,7 @@ Car::Car(unsigned char i_x, unsigned char i_y) : direction(i_y % 2), x(CELL_SIZE
 //Dibuja el coche en la ventana de renderizado
 void Car::draw(sf::RenderWindow& i_window) 
 {
-    texture.loadFromFile("Resources/Images/Cars.png"); //Carga la textura correspondiente y la dibuja en la posición actual del coche
+    texture.loadFromFile("assets/Cars.png"); //Carga la textura correspondiente y la dibuja en la posición actual del coche
 
     sprite.setPosition(x, y); //La orientación del sprite depende de la dirección del movimiento
     sprite.setTexture(texture);

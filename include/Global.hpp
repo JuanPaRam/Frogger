@@ -1,5 +1,7 @@
 #pragma once // Evita inclusiones múltiples del archivo
 
+#include <chrono> // Necesario para std::chrono::microseconds
+
 // Constantes de tamaño y dimensiones
 constexpr unsigned char CELL_SIZE = 16; // Tamaño de cada celda del mapa en píxeles (16x16)
 //estipula los frames por segundo
@@ -12,7 +14,7 @@ constexpr unsigned char MAP_HEIGHT = 15; // Alto del mapa en celdas
 constexpr unsigned char NORMAL_SPEED = 2; // Velocidad normal de movimiento (2 píxeles por frame)
 constexpr unsigned char SCREEN_RESIZE = 2; // Factor de escalado de la pantalla (2x)
 constexpr unsigned char SLOW_SPEED = 1; // Velocidad lenta de movimiento (1 píxel por frame)
-constexpr unsigned char TURTLE_LEVELS = 8; // Número total de niveles con tortugas
+constexpr unsigned char TOTAL_LEVELS = 8; // Número total de niveles con tortugas
 constexpr unsigned char TURTLE_ANIMATION_SPEED = 16; // Velocidad de animación de tortugas (frames entre cambios)
 constexpr unsigned char TURTLE_DIVING_SPEED = 32; // Velocidad de inmersión de tortugas (frames para sumergirse)
 

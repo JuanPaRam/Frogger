@@ -3,11 +3,11 @@
 #include <cmath>
 #include <SFML/Graphics.hpp>
 
-#include "include/Frog.hpp"
-#include "include/Global.hpp"
-#include "include/Log.hpp"
-#include "include/Turtle.hpp"
-#include "include/RiverManager.hpp"
+#include "Frog.hpp"
+#include "Global.hpp"
+#include "Log.hpp"
+#include "Turtle.hpp"
+#include "RiverManager.hpp"
 
  // Constructor de la clase RiverManager
 RiverManager::RiverManager(unsigned char i_level) // Inicializa el gestor del río y genera el nivel especificado
