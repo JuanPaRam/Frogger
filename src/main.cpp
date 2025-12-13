@@ -85,7 +85,7 @@ int main() // Función principal del juego
                     next_level = 0;
                 }
             }
-            else if (0 == game_over && 0 == intro_screen) // Lógica de juego activa solo si no está en game over ni en intro
+            else if (0 == game_over) // Lógica de juego activa solo si no está en game over
             {
                 if (0 == frog.get_dead()) // Continuar si la rana está viva
                 {
@@ -170,11 +170,7 @@ int main() // Función principal del juego
         // Renderizado - fuera del bucle de actualización
         window.clear();
 
-        if (1 == intro_screen) // Muestra pantalla de introducción
-        {
-            draw_text(1, 0, 0, "FROGGER\n\n\nPress Enter\n\nto Start", window);
-        }
-        else if (1 == game_over) // Muestra pantalla de Game Over
+        if (1 == game_over) // Muestra pantalla de Game Over
         {
             // Calcula el tiempo restante
             auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - game_over_time);
