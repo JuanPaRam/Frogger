@@ -25,11 +25,11 @@ int main() // Función principal del juego
     unsigned char lives = 3;
     unsigned char intro_frame = 1;
     unsigned char intro_animation_timer = 0;
-    unsigned short instructions_timer = 180;
+    unsigned short instructions_timer = 240;
     unsigned short title_timer = 0;
     constexpr unsigned char INTRO_TOTAL_FRAMES = 76;
     constexpr unsigned char INTRO_FRAME_SPEED = 2;
-    constexpr unsigned short INSTRUCTIONS_DURATION = 180;
+    constexpr unsigned short INSTRUCTIONS_DURATION = 240;
     constexpr unsigned short TITLE_DURATION = 60;
 
     unsigned short timer = TIMER_INITIAL_DURATION;
@@ -331,16 +331,31 @@ int main() // Función principal del juego
             float centerX = CELL_SIZE * MAP_WIDTH / 2.0f;
             float centerY = (FONT_HEIGHT + CELL_SIZE * MAP_HEIGHT) / 2.0f;
             
-            // Dibujar textos centrados (sin las flechas en el texto)
-            draw_text(0, centerX - 70, centerY - 20, "To navigate use", window);
-            draw_text(0, centerX - 70, centerY + 12, "To respawn use", window);
+            // Ancho aproximado de cada texto en píxeles (cada letra ~8px)
+            float text1Width = 15 * 8.0f; // "To navigate use"
+            float text2Width = 14 * 8.0f; // "To respawn use"
             
-            // Posicionar Arrows a la derecha del primer texto
-            arrows_sprite.setPosition(centerX + 50, centerY - 20);
+            // Ancho de las imágenes (se obtiene de las texturas)
+            float arrowsWidth = arrows_texture.getSize().x;
+            float enterWidth = enter_texture.getSize().x;
+            
+            // Espacio entre texto e imagen
+            float spacing = 10.0f;
+            
+            // Calcular ancho total de cada línea
+            float line1Width = text1Width + spacing + arrowsWidth;
+            float line2Width = text2Width + spacing + enterWidth;
+            
+            // Posicionar primera línea centrada
+            float line1StartX = centerX - (line1Width / 2.0f);
+            draw_text(0, line1StartX, centerY - 20, "To navigate use", window);
+            arrows_sprite.setPosition(line1StartX + text1Width + spacing, centerY - 30);
             window.draw(arrows_sprite);
             
-            // Posicionar Enter a la derecha del segundo texto
-            enter_sprite.setPosition(centerX + 50, centerY + 12);
+            // Posicionar segunda línea centrada
+            float line2StartX = centerX - (line2Width / 2.0f);
+            draw_text(0, line2StartX, centerY + 12, "To respawn use", window);
+            enter_sprite.setPosition(line2StartX + text2Width + spacing, centerY + 12);
             window.draw(enter_sprite);
         }
         else if (1 == intro_playing) // Muestra animación de introducción
@@ -373,18 +388,12 @@ int main() // Función principal del juego
         {
             draw_map(swamp, window);
 
-            if (0 == frog.get_dead()) // Si la rana está viva, dibuja río primero
-            {
-                river_manager.draw(window);
-                frog.draw(window);
-            }
-            else // Si la rana está muerta, dibuja rana primero
-            {
-                frog.draw(window);
-                river_manager.draw(window);
-            }
-
+            river_manager.draw(window);
             cars_manager.draw(window);
+            
+            // Dibujar la rana siempre al final para que sea visible
+            frog.draw(window);
+            
             draw_text(0, 0, CELL_SIZE * MAP_HEIGHT, "Time: " + std::to_string(static_cast<unsigned short>(floor(timer / 64.f))), window);
             draw_text(0, CELL_SIZE * MAP_WIDTH / 2 - 40, CELL_SIZE * MAP_HEIGHT, "Level: " + std::to_string(level + 1), window);
             draw_text(0, CELL_SIZE * MAP_WIDTH - 80, CELL_SIZE * MAP_HEIGHT, "Lives: " + std::to_string(lives), window);

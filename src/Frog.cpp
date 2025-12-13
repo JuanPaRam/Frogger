@@ -168,35 +168,43 @@ void Frog::update()
 		control_keys[2] = sf::Keyboard::isKeyPressed(sf::Keyboard::Left);
 		control_keys[3] = sf::Keyboard::isKeyPressed(sf::Keyboard::Down);
 
-		if (1 == moved)
-		{
-			animation_timer = FROG_ANIMATION_SPEED;
-			current_frame = 0;
-		}
-
+		// Animación constante - alterna entre frames 0 y 1
 		if (0 == animation_timer)
 		{
-			current_frame = 1;
+			animation_timer = FROG_ANIMATION_SPEED;
+			current_frame = (current_frame == 0) ? 1 : 0;
 		}
 		else
 		{
 			animation_timer--;
 		}
 	}
-	else if (y < CELL_SIZE * floor(0.5f * MAP_HEIGHT))
+	else
 	{
-		// Animación de muerte en el agua - se detiene en el frame 3
-		if (current_frame < 3)
+		// Animación de muerte - se detiene en el frame 3
+		if (y < CELL_SIZE * floor(0.5f * MAP_HEIGHT))
 		{
-			if (0 == animation_timer)
+			// Muerte en el agua - anima los 4 frames
+			if (current_frame <= 3)
 			{
-				animation_timer = FROG_ANIMATION_SPEED;
-				current_frame = std::min(3, 1 + current_frame);
+				if (0 == animation_timer)
+				{
+					animation_timer = FROG_ANIMATION_SPEED;
+					if (current_frame < 3)
+					{
+						current_frame++;
+					}
+				}
+				else
+				{
+					animation_timer--;
+				}
 			}
-			else
-			{
-				animation_timer--;
-			}
+		}
+		else
+		{
+			// Muerte en la carretera - mantiene el frame 0 (aplastado)
+			current_frame = 0;
 		}
 	}
 }
