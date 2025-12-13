@@ -15,10 +15,18 @@
 
 int main() // Función principal del juego
 {
+    bool intro_playing = 1;
+    bool title_showing = 0;
     bool next_level = 0;
     bool game_over = 0;
     unsigned char level = 0;
     unsigned char lives = 3;
+    unsigned char intro_frame = 1;
+    unsigned char intro_animation_timer = 0;
+    unsigned short title_timer = 0;
+    constexpr unsigned char INTRO_TOTAL_FRAMES = 76;
+    constexpr unsigned char INTRO_FRAME_SPEED = 2;
+    constexpr unsigned short TITLE_DURATION = 60;
 
     unsigned short timer = TIMER_INITIAL_DURATION;
     unsigned short timer_duration = TIMER_INITIAL_DURATION;
@@ -27,6 +35,12 @@ int main() // Función principal del juego
     std::chrono::microseconds lag(0);
     std::chrono::steady_clock::time_point previous_time;
     std::chrono::steady_clock::time_point game_over_time;
+    
+    sf::Texture intro_texture;
+    sf::Sprite intro_sprite;
+    sf::Texture title_texture;
+    sf::Sprite title_sprite;
+    title_texture.loadFromFile("assets/Title.png");
     
     sf::Event event;
     sf::RenderWindow window(sf::VideoMode(CELL_SIZE * MAP_WIDTH * SCREEN_RESIZE, SCREEN_RESIZE * (FONT_HEIGHT + CELL_SIZE * MAP_HEIGHT)), "Frogger", sf::Style::Close);
@@ -61,7 +75,34 @@ int main() // Función principal del juego
                 }
             }
 
-            if (1 == game_over) // Manejo del Game Over
+            if (1 == intro_playing) // Animación de introducción
+            {
+                if (0 == intro_animation_timer)
+                {
+                    intro_animation_timer = INTRO_FRAME_SPEED;
+                    intro_frame++;
+                    
+                    if (intro_frame > INTRO_TOTAL_FRAMES)
+                    {
+                        intro_playing = 0;
+                        title_showing = 1;
+                        title_timer = TITLE_DURATION;
+                    }
+                }
+                else
+                {
+                    intro_animation_timer--;
+                }
+                
+                // Saltar intro con Enter
+                if (1 == sf::Keyboard::isKeyPressed(sf::Keyboard::Enter))
+                {
+                    intro_playing = 0;
+                    title_showing = 1;
+                    title_timer = TITLE_DURATION;
+                }
+            }
+            else if (1 == game_over) // Manejo del Game Over
             {
                 // Verifica que hayan pasado al menos 3 segundos desde game over
                 auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - game_over_time);
@@ -87,6 +128,25 @@ int main() // Función principal del juego
             }
             else if (0 == game_over) // Lógica de juego activa solo si no está en game over
             {
+                // Actualizar temporizador del título si está mostrándose
+                if (1 == title_showing)
+                {
+                    if (title_timer > 0)
+                    {
+                        title_timer--;
+                    }
+                    else
+                    {
+                        title_showing = 0;
+                    }
+                    
+                    // Saltar título con Enter
+                    if (1 == sf::Keyboard::isKeyPressed(sf::Keyboard::Enter))
+                    {
+                        title_showing = 0;
+                    }
+                }
+                
                 if (0 == frog.get_dead()) // Continuar si la rana está viva
                 {
                     if (0 == timer) // Si se acabó el tiempo
@@ -170,7 +230,19 @@ int main() // Función principal del juego
         // Renderizado - fuera del bucle de actualización
         window.clear();
 
-        if (1 == game_over) // Muestra pantalla de Game Over
+        if (1 == intro_playing) // Muestra animación de introducción
+        {
+            intro_texture.loadFromFile("assets/intro/AnimacionPantallaCarga" + std::to_string(intro_frame) + ".png");
+            intro_sprite.setTexture(intro_texture, true);
+            
+            // Escalar la imagen para que ocupe toda la ventana
+            float scaleX = (CELL_SIZE * MAP_WIDTH) / static_cast<float>(intro_texture.getSize().x);
+            float scaleY = (FONT_HEIGHT + CELL_SIZE * MAP_HEIGHT) / static_cast<float>(intro_texture.getSize().y);
+            intro_sprite.setScale(scaleX, scaleY);
+            intro_sprite.setPosition(0, 0);
+            window.draw(intro_sprite);
+        }
+        else if (1 == game_over) // Muestra pantalla de Game Over
         {
             // Calcula el tiempo restante
             auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - game_over_time);
@@ -203,6 +275,19 @@ int main() // Función principal del juego
             draw_text(0, 0, CELL_SIZE * MAP_HEIGHT, "Time: " + std::to_string(static_cast<unsigned short>(floor(timer / 64.f))), window);
             draw_text(0, CELL_SIZE * MAP_WIDTH / 2 - 40, CELL_SIZE * MAP_HEIGHT, "Level: " + std::to_string(level + 1), window);
             draw_text(0, CELL_SIZE * MAP_WIDTH - 80, CELL_SIZE * MAP_HEIGHT, "Lives: " + std::to_string(lives), window);
+            
+            // Dibujar título encima del juego si está activo
+            if (1 == title_showing)
+            {
+                title_sprite.setTexture(title_texture, true);
+                
+                // Escalar la imagen para que ocupe toda la ventana
+                float scaleX = (CELL_SIZE * MAP_WIDTH) / static_cast<float>(title_texture.getSize().x);
+                float scaleY = (FONT_HEIGHT + CELL_SIZE * MAP_HEIGHT) / static_cast<float>(title_texture.getSize().y);
+                title_sprite.setScale(scaleX, scaleY);
+                title_sprite.setPosition(0, 0);
+                window.draw(title_sprite);
+            }
         }
 
         window.display();
