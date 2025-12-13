@@ -2,9 +2,20 @@
 #include <chrono>
 #include <cmath>
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
 
 #include "Frog.hpp"
 #include "Global.hpp"
+
+// Sonidos globales para las muertes
+static sf::Sound* rushed_sound_ptr = nullptr;
+static sf::Sound* splash_sound_ptr = nullptr;
+
+void Frog::set_death_sounds(sf::Sound* rushed, sf::Sound* splash)
+{
+    rushed_sound_ptr = rushed;
+    splash_sound_ptr = splash;
+}
 
 // Constructor de la clase Frog
 Frog::Frog() 
@@ -93,11 +104,20 @@ void Frog::reset()
 	control_keys[3] = sf::Keyboard::isKeyPressed(sf::Keyboard::Down);
 }
 
-void Frog::set_dead()
+void Frog::set_dead(unsigned char death_type)
 {
 	if (0 == dead)
 	{
 		dead = 1;
+		// death_type: 0 = ahogada, 1 = atropellada
+		if (death_type == 1 && rushed_sound_ptr != nullptr)
+		{
+			rushed_sound_ptr->play();
+		}
+		else if (death_type == 0 && splash_sound_ptr != nullptr)
+		{
+			splash_sound_ptr->play();
+		}
 
 		animation_timer = 0;
 		current_frame = 0;

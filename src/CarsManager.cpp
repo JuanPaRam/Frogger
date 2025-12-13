@@ -290,7 +290,7 @@ void CarsManager::update(Frog& i_frog) // Actualiza el estado de todos los coche
              // Referencia a la rana para detectar colisiones y actualizar su estado
             if (1 == car.get_rect().intersects(i_frog.get_rect()))
             {
-                i_frog.set_dead();
+                i_frog.set_dead(1); // 1 = atropellada
             }
         }
     }

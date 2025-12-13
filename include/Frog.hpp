@@ -1,5 +1,10 @@
 #pragma once // Evita inclusiones múltiples del archivo
 
+// Forward declarations
+namespace sf {
+    class Sound;
+}
+
 // Clase Frog
 class Frog // Representa la rana jugable en el juego Frogger
 {
@@ -29,7 +34,10 @@ public:
     void draw(sf::RenderWindow& i_window); // Dibuja la rana en la ventana
     void move(char i_value); // Mueve la rana horizontalmente
     void reset(); // Reinicia la rana a su posición y estado inicial
-    void set_dead(); // Marca la rana como muerta
+    void set_dead(unsigned char death_type = 0); // Marca la rana como muerta (0=ahogada, 1=atropellada)
     void update(); // Actualiza el estado de la rana
     sf::IntRect get_rect() const; // Obtiene el rectángulo delimitador de la rana
+    
+    // Método estático para configurar los sonidos de muerte
+    static void set_death_sounds(sf::Sound* rushed, sf::Sound* splash);
 };

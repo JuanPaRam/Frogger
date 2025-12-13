@@ -2,6 +2,7 @@
 #include <chrono>
 #include <cmath>
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
 
 #include "Car.hpp"
 #include "Frog.hpp"
@@ -42,13 +43,57 @@ int main() // Función principal del juego
     sf::Sprite title_sprite;
     title_texture.loadFromFile("assets/Title.png");
     
+    sf::SoundBuffer blink_buffer;
+    sf::Sound blink_sound;
+    blink_buffer.loadFromFile("assets/Audio/Blink.mp3");
+    blink_sound.setBuffer(blink_buffer);
+    
+    sf::SoundBuffer tongue_buffer;
+    sf::Sound tongue_sound;
+    tongue_buffer.loadFromFile("assets/Audio/Tongue.mp3");
+    tongue_sound.setBuffer(tongue_buffer);
+    
+    sf::SoundBuffer gameover_buffer;
+    sf::Sound gameover_sound;
+    gameover_buffer.loadFromFile("assets/Audio/GameOver.mp3");
+    gameover_sound.setBuffer(gameover_buffer);
+    
+    sf::SoundBuffer rushed_buffer;
+    sf::Sound rushed_sound;
+    rushed_buffer.loadFromFile("assets/Audio/Rushed.mp3");
+    rushed_sound.setBuffer(rushed_buffer);
+    
+    sf::SoundBuffer splash_buffer;
+    sf::Sound splash_sound;
+    splash_buffer.loadFromFile("assets/Audio/Splash.mp3");
+    splash_sound.setBuffer(splash_buffer);
+    
+    sf::SoundBuffer point_buffer;
+    sf::Sound point_sound;
+    point_buffer.loadFromFile("assets/Audio/Point.mp3");
+    point_sound.setBuffer(point_buffer);
+    
+    sf::Music gameplay_music;
+    gameplay_music.openFromFile("assets/Audio/GamePlay.mp3");
+    gameplay_music.setLoop(true);
+    
     sf::Event event;
     sf::RenderWindow window(sf::VideoMode(CELL_SIZE * MAP_WIDTH * SCREEN_RESIZE, SCREEN_RESIZE * (FONT_HEIGHT + CELL_SIZE * MAP_HEIGHT)), "Frogger", sf::Style::Close);
     window.setView(sf::View(sf::FloatRect(0, 0, CELL_SIZE * MAP_WIDTH, FONT_HEIGHT + CELL_SIZE * MAP_HEIGHT)));
+    
+    // Establecer icono de la ventana
+    sf::Image icon;
+    if (icon.loadFromFile("assets/icon.png"))
+    {
+        window.setIcon(icon.getSize().x, icon.getSize().y, icon.getPixelsPtr());
+    }
 
     CarsManager cars_manager(level);
 
     Frog frog;
+    
+    // Configurar los sonidos de muerte en la clase Frog
+    Frog::set_death_sounds(&rushed_sound, &splash_sound);
 
     RiverManager river_manager(level);
 
@@ -82,11 +127,24 @@ int main() // Función principal del juego
                     intro_animation_timer = INTRO_FRAME_SPEED;
                     intro_frame++;
                     
+                    // Reproducir sonido Blink cuando la rana parpadea (cada 10 frames aproximadamente)
+                    if (intro_frame % 10 == 0 && intro_frame > 0 && intro_frame < INTRO_TOTAL_FRAMES)
+                    {
+                        blink_sound.play();
+                    }
+                    
+                    // Reproducir sonido Tongue cuando se alcanza el último frame
+                    if (intro_frame == INTRO_TOTAL_FRAMES)
+                    {
+                        tongue_sound.play();
+                    }
+                    
                     if (intro_frame > INTRO_TOTAL_FRAMES)
                     {
                         intro_playing = 0;
                         title_showing = 1;
                         title_timer = TITLE_DURATION;
+                        gameplay_music.play();
                     }
                 }
                 else
@@ -100,10 +158,17 @@ int main() // Función principal del juego
                     intro_playing = 0;
                     title_showing = 1;
                     title_timer = TITLE_DURATION;
+                    gameplay_music.play();
                 }
             }
             else if (1 == game_over) // Manejo del Game Over
             {
+                // Detener música de gameplay
+                if (gameplay_music.getStatus() == sf::Music::Playing)
+                {
+                    gameplay_music.stop();
+                }
+                
                 // Verifica que hayan pasado al menos 3 segundos desde game over
                 auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - game_over_time);
                 if (elapsed.count() >= 3000) // Reinicia automáticamente después de 3 segundos
@@ -117,6 +182,7 @@ int main() // Función principal del juego
                     cars_manager.generate_level(level);
                     river_manager.generate_level(level);
                     frog.reset();
+                    gameplay_music.play();
                 }
             }
             else if (1 == next_level) // Que hacer si se completó un nivel
@@ -156,6 +222,7 @@ int main() // Función principal del juego
                         {
                             game_over = 1;
                             game_over_time = std::chrono::steady_clock::now();
+                            gameover_sound.play();
                         }
                     }
                     else // Si aún hay tiempo
@@ -176,6 +243,7 @@ int main() // Función principal del juego
                 {
                     game_over = 1;
                     game_over_time = std::chrono::steady_clock::now();
+                    gameover_sound.play();
                 }
                 else if (1 == sf::Keyboard::isKeyPressed(sf::Keyboard::Enter)) // Si hay vidas, espera Enter
                 {
@@ -188,11 +256,13 @@ int main() // Función principal del juego
                     {
                         game_over = 1;
                         game_over_time = std::chrono::steady_clock::now();
+                        gameover_sound.play();
                     }
                 }
             }
             else if (1 == frog.update_swamp(swamp)) // Si la rana alcanzó un pantano
             {
+                point_sound.play();
                 bool swamp_full = 1;
 
                 for (unsigned char a = 0; a < swamp. size(); a++) // Verifica si todos los pantanos están llenos

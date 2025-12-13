@@ -261,9 +261,9 @@ void RiverManager::update(Frog& i_frog)
             turtle.update(0, i_frog);
         }
     }
-    
+
     if (0 == frog_on_top && CELL_SIZE < i_frog.get_y() && i_frog.get_y() < CELL_SIZE * floor(0.5f * MAP_HEIGHT))
         {
-            i_frog.set_dead();
+            i_frog.set_dead(0); // 0 = ahogada
         }
 }
